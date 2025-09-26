@@ -1,63 +1,83 @@
+'use client';
+
+import { useMemo } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
+import { getMockPolls } from '@/lib/mock-data';
+import { formatRelativeTime } from '@/lib/utils';
+import type { PollListItem } from '@/lib/types';
 
-// Mock data for polls
-const mockPolls = [
-  {
-    id: "1",
-    title: "Favorite Programming Language",
-    description: "What's your favorite programming language?",
-    votes: 42,
-    createdAt: "2023-05-15",
-  },
-  {
-    id: "2",
-    title: "Best Frontend Framework",
-    description: "Which frontend framework do you prefer?",
-    votes: 38,
-    createdAt: "2023-05-20",
-  },
-  {
-    id: "3",
-    title: "Database Preference",
-    description: "Which database do you use most often?",
-    votes: 27,
-    createdAt: "2023-05-25",
-  },
-];
+/**
+ * Individual Poll Card Component
+ * Extracted for better reusability and maintainability
+ */
+interface PollCardProps {
+  poll: PollListItem;
+}
 
-export default function PollsPage() {
+function PollCard({ poll }: PollCardProps) {
+  // Memoize the formatted date to avoid recalculation on every render
+  const formattedDate = useMemo(() => formatRelativeTime(poll.created_at), [poll.created_at]);
+  
   return (
-    <div className="container mx-auto py-10">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Polls</h1>
-        <Button asChild>
-          <Link href="/polls/create">Create New Poll</Link>
-        </Button>
-      </div>
+    <Card className="hover:shadow-lg transition-shadow duration-200">
+      <CardHeader>
+        <CardTitle className="text-lg line-clamp-2">{poll.title}</CardTitle>
+        <CardDescription className="line-clamp-3">{poll.description}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="flex justify-between items-center">
+          <span className="text-sm text-muted-foreground">
+            {poll.total_votes} votes • {formattedDate}
+          </span>
+          <Link href={`/polls/${poll.id}`}>
+            <Button variant="outline" size="sm">
+              View Poll
+            </Button>
+          </Link>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {mockPolls.map((poll) => (
-          <Card key={poll.id} className="overflow-hidden">
-            <CardHeader>
-              <CardTitle className="truncate">{poll.title}</CardTitle>
-              <CardDescription>{poll.description}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-sm text-muted-foreground">
-                <p>{poll.votes} votes</p>
-                <p>Created on {poll.createdAt}</p>
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button asChild className="w-full">
-                <Link href={`/polls/${poll.id}`}>View Poll</Link>
-              </Button>
-            </CardFooter>
-          </Card>
-        ))}
+/**
+ * Polls Page Component
+ * Displays a list of available polls with improved performance and readability
+ */
+export default function PollsPage() {
+  // Memoize the polls data to prevent unnecessary re-fetching
+  const polls = useMemo(() => getMockPolls(true), []);
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h1 className="text-3xl font-bold">Polls</h1>
+          <p className="text-muted-foreground mt-2">
+            Discover and participate in community polls
+          </p>
+        </div>
+        <Link href="/polls/create">
+          <Button>Create Poll</Button>
+        </Link>
       </div>
+      
+      {polls.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-muted-foreground mb-4">No polls available yet.</p>
+          <Link href="/polls/create">
+            <Button>Create the first poll</Button>
+          </Link>
+        </div>
+      ) : (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {polls.map((poll) => (
+            <PollCard key={poll.id} poll={poll} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
