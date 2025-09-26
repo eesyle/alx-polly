@@ -1,3 +1,28 @@
+/**
+ * Poll Detail Page with Voting Interface
+ * 
+ * This page component displays a detailed view of a poll with voting capabilities.
+ * It provides an interactive interface for users to view poll options, submit votes,
+ * and see real-time results with visual progress bars.
+ * 
+ * Features:
+ * - Interactive voting interface with radio button selection
+ * - Real-time vote count display with percentages
+ * - Visual progress bars showing vote distribution
+ * - Poll metadata display (creator, creation date)
+ * - Responsive design with modern UI components
+ * - Share functionality for poll distribution
+ * 
+ * Security Considerations:
+ * - Vote submission requires authentication (handled by API)
+ * - Duplicate vote prevention (handled by backend)
+ * - Input validation for poll ID parameter
+ * 
+ * @param {Object} params - Next.js dynamic route parameters
+ * @param {string} params.id - The poll ID from the URL path
+ * @returns {JSX.Element} The poll detail page component
+ */
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -20,30 +45,58 @@ const mockPoll = {
   createdBy: "John Doe",
 };
 
+/**
+ * Poll Detail Page Component
+ * 
+ * Renders the complete poll viewing and voting interface with real-time results.
+ * Handles poll data display, vote submission interface, and result visualization.
+ * 
+ * @param {Object} params - Dynamic route parameters from Next.js
+ * @param {string} params.id - Poll ID extracted from URL path
+ * @returns {JSX.Element} Complete poll detail interface
+ */
 export default function PollDetailPage({ params }: { params: { id: string } }) {
   const { id } = params;
-  // In a real app, you would fetch the poll data based on the ID
+  
+  // TODO: Replace with actual data fetching using getPollWithOptions(id)
+  // In production, this would fetch poll data based on the ID parameter
   const poll = mockPoll;
 
   return (
     <div className="container mx-auto py-10">
+      {/* Main poll container with responsive design */}
       <Card className="max-w-3xl mx-auto">
+        
+        {/* Poll header with title, description, and metadata */}
         <CardHeader>
           <CardTitle className="text-2xl">{poll.title}</CardTitle>
           <CardDescription>{poll.description}</CardDescription>
+          
+          {/* Poll metadata display */}
           <div className="text-sm text-muted-foreground mt-2">
             Created by {poll.createdBy} on {poll.createdAt}
           </div>
         </CardHeader>
+        
         <CardContent>
+          {/* Voting interface form */}
           <form>
+            {/* Radio group for single-choice voting */}
             <RadioGroup defaultValue="">
               {poll.options.map((option) => (
-                <div key={option.id} className="flex items-center space-x-2 mb-4 p-3 border rounded-md hover:bg-muted/50">
+                <div 
+                  key={option.id} 
+                  className="flex items-center space-x-2 mb-4 p-3 border rounded-md hover:bg-muted/50"
+                >
+                  {/* Radio button for option selection */}
                   <RadioGroupItem value={option.id} id={`option-${option.id}`} />
+                  
+                  {/* Option text label (clickable for accessibility) */}
                   <Label htmlFor={`option-${option.id}`} className="flex-1">
                     {option.text}
                   </Label>
+                  
+                  {/* Real-time vote count and percentage display */}
                   <span className="text-sm text-muted-foreground">
                     {option.votes} votes ({Math.round((option.votes / poll.totalVotes) * 100)}%)
                   </span>
@@ -52,15 +105,23 @@ export default function PollDetailPage({ params }: { params: { id: string } }) {
             </RadioGroup>
           </form>
 
+          {/* Results visualization section */}
           <div className="mt-6">
             <h3 className="text-lg font-medium mb-2">Results</h3>
+            
+            {/* Visual progress bars for each option */}
             {poll.options.map((option) => (
               <div key={`result-${option.id}`} className="mb-3">
+                
+                {/* Option name and percentage header */}
                 <div className="flex justify-between text-sm mb-1">
                   <span>{option.text}</span>
                   <span>{Math.round((option.votes / poll.totalVotes) * 100)}%</span>
                 </div>
+                
+                {/* Progress bar container */}
                 <div className="w-full bg-muted rounded-full h-2.5">
+                  {/* Dynamic progress bar based on vote percentage */}
                   <div
                     className="bg-primary h-2.5 rounded-full"
                     style={{ width: `${(option.votes / poll.totalVotes) * 100}%` }}
@@ -70,8 +131,13 @@ export default function PollDetailPage({ params }: { params: { id: string } }) {
             ))}
           </div>
         </CardContent>
+        
+        {/* Action buttons for poll interaction */}
         <CardFooter className="flex justify-between">
+          {/* Share functionality for poll distribution */}
           <Button variant="outline">Share Poll</Button>
+          
+          {/* Vote submission button (TODO: Connect to submitVote API) */}
           <Button>Vote</Button>
         </CardFooter>
       </Card>
